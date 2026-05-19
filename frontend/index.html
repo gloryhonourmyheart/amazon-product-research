@@ -1,0 +1,2125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>亚马逊选品助手 Pro - 免费选品工具</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@6.5.1/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #FF6900;
+      --secondary: #232F3E;
+      --success: #00A86B;
+      --warning: #FFB800;
+      --danger: #E74C3C;
+      --info: #007185;
+      --light: #F5F7FA;
+      --dark: #0F1111;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background-color: var(--light);
+      margin: 0;
+      padding: 0;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 260px;
+      height: 100vh;
+      background: linear-gradient(180deg, var(--secondary) 0%, #1a2332 100%);
+      color: white;
+      overflow-y: auto;
+      z-index: 1000;
+      transition: transform 0.3s;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .sidebar-logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sidebar-nav {
+      padding: 15px 0;
+    }
+
+    .nav-item {
+      margin: 2px 10px;
+    }
+
+    .nav-link {
+      color: rgba(255,255,255,0.8);
+      padding: 12px 15px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    .nav-link:hover {
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+
+    .nav-link.active {
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+    }
+
+    .nav-link i {
+      width: 20px;
+      text-align: center;
+    }
+
+    .main-content {
+      margin-left: 260px;
+      min-height: 100vh;
+      background: var(--light);
+    }
+
+    .top-bar {
+      background: white;
+      padding: 15px 25px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .page-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--dark);
+      margin: 0;
+    }
+
+    .page-container {
+      padding: 25px;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      transition: all 0.3s;
+      height: 100%;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+
+    .stat-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .stat-icon.primary { background: rgba(255,105,0,0.1); color: var(--primary); }
+    .stat-icon.success { background: rgba(0,168,107,0.1); color: var(--success); }
+    .stat-icon.warning { background: rgba(255,184,0,0.1); color: var(--warning); }
+    .stat-icon.info { background: rgba(0,113,133,0.1); color: var(--info); }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--dark);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      border: none;
+    }
+
+    .card-header {
+      background: white;
+      border-bottom: 1px solid #f0f0f0;
+      padding: 15px 20px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-body { padding: 20px; }
+
+    .filter-section {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      align-items: flex-end;
+    }
+
+    .filter-group {
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .filter-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .form-control, .form-select {
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(255,105,0,0.1);
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .btn-primary:hover {
+      background: #e55c00;
+      border-color: #e55c00;
+    }
+
+    .btn-success {
+      background: var(--success);
+      border-color: var(--success);
+    }
+
+    .btn-outline-primary {
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .btn-outline-primary:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .table {
+      margin-bottom: 0;
+    }
+
+    .table thead th {
+      background: #f8f9fa;
+      border-bottom: 2px solid #eee;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      color: #666;
+      padding: 12px 15px;
+    }
+
+    .table tbody td {
+      padding: 12px 15px;
+      vertical-align: middle;
+      border-bottom: 1px solid #f5f5f5;
+    }
+
+    .table-hover tbody tr:hover {
+      background: rgba(255,105,0,0.03);
+    }
+
+    .product-img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 8px;
+      background: #f5f5f5;
+    }
+
+    .badge-rating {
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+    }
+
+    .badge-high { background: var(--success); color: white; }
+    .badge-medium { background: var(--warning); color: #333; }
+    .badge-low { background: var(--danger); color: white; }
+
+    .competition-bar {
+      height: 20px;
+      border-radius: 10px;
+      background: #eee;
+      overflow: hidden;
+    }
+
+    .competition-fill {
+      height: 100%;
+      border-radius: 10px;
+      transition: width 0.5s;
+    }
+
+    .trend-up { color: var(--success); }
+    .trend-down { color: var(--danger); }
+    .trend-stable { color: #999; }
+
+    .pagination {
+      margin-top: 20px;
+      justify-content: center;
+    }
+
+    .keyword-tag {
+      display: inline-block;
+      padding: 5px 12px;
+      background: rgba(255,105,0,0.1);
+      color: var(--primary);
+      border-radius: 20px;
+      margin: 3px;
+      font-size: 0.85rem;
+    }
+
+    .competitor-card {
+      padding: 15px;
+      border: 1px solid #eee;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .competitor-card:hover {
+      border-color: var(--primary);
+      background: rgba(255,105,0,0.02);
+    }
+
+    .competitor-card.active {
+      border-color: var(--primary);
+      background: rgba(255,105,0,0.05);
+    }
+
+    .detail-section {
+      margin-top: 20px;
+    }
+
+    .detail-section h6 {
+      font-weight: 600;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #eee;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+    }
+
+    .market-score {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), #ff8533);
+      color: white;
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin: 0 auto;
+    }
+
+    .market-score-label {
+      text-align: center;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+
+    .market-metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+    }
+
+    .metric-item {
+      text-align: center;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 10px;
+    }
+
+    .metric-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--dark);
+    }
+
+    .metric-label {
+      font-size: 0.8rem;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    .review-summary {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 10px;
+    }
+
+    .review-chart {
+      width: 150px;
+    }
+
+    .review-bars {
+      flex: 1;
+    }
+
+    .review-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .review-bar-label {
+      width: 60px;
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .review-bar {
+      flex: 1;
+      height: 12px;
+      background: #eee;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .review-bar-fill {
+      height: 100%;
+      background: var(--success);
+      border-radius: 6px;
+    }
+
+    .review-bar-count {
+      width: 50px;
+      text-align: right;
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      opacity: 0.3;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .main-content {
+        margin-left: 0;
+      }
+      .market-metrics {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--dark);
+    }
+
+    @media (max-width: 768px) {
+      .mobile-menu-btn { display: block; }
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: var(--dark);
+    }
+
+    .quick-stats {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .quick-stat {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .quick-stat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,105,0,0.1);
+      color: var(--primary);
+    }
+
+    .quick-stat-value {
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .quick-stat-label {
+      font-size: 0.75rem;
+      color: #666;
+    }
+
+    .star-rating {
+      color: var(--warning);
+    }
+
+    .profit-highlight {
+      background: linear-gradient(135deg, var(--success), #00c17b);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .profit-highlight .value {
+      font-size: 2.5rem;
+      font-weight: 700;
+    }
+
+    .profit-highlight .label {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    .input-group-text {
+      background: #f8f9fa;
+      border: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <aside class="sidebar" :class="{ open: sidebarOpen }">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <i class="fas fa-chart-line"></i>
+          <span>选品助手 Pro</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link" :class="{ active: currentTab === 'dashboard' }" @click="switchTab('dashboard')">
+              <i class="fas fa-tachometer-alt"></i>
+              <span>数据看板</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" :class="{ active: currentTab === 'product' }" @click="switchTab('product')">
+              <i class="fas fa-search"></i>
+              <span>产品搜索</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" :class="{ active: currentTab === 'market' }" @click="switchTab('market')">
+              <i class="fas fa-chart-pie"></i>
+              <span>市场分析</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" :class="{ active: currentTab === 'keyword' }" @click="switchTab('keyword')">
+              <i class="fas fa-keyboard"></i>
+              <span>关键词研究</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" :class="{ active: currentTab === 'competitor' }" @click="switchTab('competitor')">
+              <i class="fas fa-users"></i>
+              <span>竞品分析</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" :class="{ active: currentTab === 'review' }" @click="switchTab('review')">
+              <i class="fas fa-comment-dots"></i>
+              <span>评论分析</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" :class="{ active: currentTab === 'store' }" @click="switchTab('store')">
+              <i class="fas fa-store"></i>
+              <span>店铺监控</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" :class="{ active: currentTab === 'profit' }" @click="switchTab('profit')">
+              <i class="fas fa-calculator"></i>
+              <span>利润计算</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" :class="{ active: currentTab === 'listing' }" @click="switchTab('listing')">
+              <i class="fas fa-pen"></i>
+              <span>Listing优化</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="d-flex align-items-center gap-3">
+          <button class="mobile-menu-btn" @click="sidebarOpen = !sidebarOpen">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h1 class="page-title">{{ pageTitle }}</h1>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-primary btn-sm" @click="exportData">
+            <i class="fas fa-download"></i> 导出数据
+          </button>
+        </div>
+      </header>
+
+      <div class="page-container">
+        <div v-if="currentTab === 'dashboard'">
+          <h4 class="section-title">数据概览</h4>
+          <div class="row mb-4">
+            <div class="col-md-3 col-sm-6 mb-3">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <div class="stat-value">{{ stats.productsAnalyzed }}</div>
+                    <div class="stat-label">分析产品数</div>
+                  </div>
+                  <div class="stat-icon primary">
+                    <i class="fas fa-box-open"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <div class="stat-value">{{ stats.potentialProducts }}</div>
+                    <div class="stat-label">潜在爆款</div>
+                  </div>
+                  <div class="stat-icon success">
+                    <i class="fas fa-fire"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <div class="stat-value">{{ stats.keywords }}</div>
+                    <div class="stat-label">关键词库</div>
+                  </div>
+                  <div class="stat-icon warning">
+                    <i class="fas fa-key"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <div class="stat-value">{{ stats.competitors }}</div>
+                    <div class="stat-label">竞品监控</div>
+                  </div>
+                  <div class="stat-icon info">
+                    <i class="fas fa-eye"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-lg-8 mb-4">
+              <div class="card">
+                <div class="card-header">
+                  <span>类目销量趋势</span>
+                  <select v-model="selectedMarket" class="form-select form-select-sm" style="width: auto;">
+                    <option value="US">美国站</option>
+                    <option value="EU">欧洲站</option>
+                    <option value="JP">日本站</option>
+                  </select>
+                </div>
+                <div class="card-body">
+                  <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+              <div class="card">
+                <div class="card-header">最新潜力产品</div>
+                <div class="card-body">
+                  <div v-for="product in latestProducts" :key="product.asin" class="d-flex gap-3 mb-3 pb-3 border-bottom">
+                    <img :src="product.image" class="product-img" style="width: 50px; height: 50px;">
+                    <div class="flex-grow-1">
+                      <div class="fw-semibold" style="font-size: 0.9rem;">{{ truncate(product.title, 35) }}</div>
+                      <div class="text-muted" style="font-size: 0.8rem;">
+                        <span class="me-2">${{ product.price }}</span>
+                        <span class="me-2">销量: {{ formatNumber(product.sales) }}</span>
+                        <span :class="getRatingClass(product.rating)">{{ product.rating }}★</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-lg-6 mb-4">
+              <div class="card">
+                <div class="card-header">飙升榜 TOP5</div>
+                <div class="card-body">
+                  <table class="table table-sm">
+                    <thead>
+                      <tr>
+                        <th>产品</th>
+                        <th>增长率</th>
+                        <th>评分</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="product in risingProducts" :key="product.asin">
+                        <td>{{ truncate(product.title, 30) }}</td>
+                        <td class="text-success fw-semibold">+{{ product.growthRate }}%</td>
+                        <td>{{ product.rating }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+              <div class="card">
+                <div class="card-header">新品榜 TOP5</div>
+                <div class="card-body">
+                  <table class="table table-sm">
+                    <thead>
+                      <tr>
+                        <th>产品</th>
+                        <th>上架时间</th>
+                        <th>评论数</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="product in newProducts" :key="product.asin">
+                        <td>{{ truncate(product.title, 30) }}</td>
+                        <td>{{ product.launchDate }}</td>
+                        <td>{{ formatNumber(product.reviews) }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="currentTab === 'product'">
+          <div class="filter-section">
+            <div class="filter-row">
+              <div class="filter-group">
+                <label>关键词</label>
+                <input v-model="filters.keyword" type="text" class="form-control" placeholder="输入产品关键词或ASIN">
+              </div>
+              <div class="filter-group">
+                <label>类目</label>
+                <select v-model="filters.category" class="form-select">
+                  <option value="">全部分类</option>
+                  <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>价格区间</label>
+                <div class="d-flex gap-2">
+                  <input v-model="filters.minPrice" type="number" class="form-control" placeholder="最低价">
+                  <input v-model="filters.maxPrice" type="number" class="form-control" placeholder="最高价">
+                </div>
+              </div>
+              <div class="filter-group">
+                <label>评分</label>
+                <select v-model="filters.minRating" class="form-select">
+                  <option value="">不限</option>
+                  <option value="3">3星以上</option>
+                  <option value="4">4星以上</option>
+                  <option value="4.5">4.5星以上</option>
+                </select>
+              </div>
+            </div>
+            <div class="filter-row mt-3">
+              <div class="filter-group">
+                <label>月销量</label>
+                <div class="d-flex gap-2">
+                  <input v-model="filters.minSales" type="number" class="form-control" placeholder="最低">
+                  <input v-model="filters.maxSales" type="number" class="form-control" placeholder="最高">
+                </div>
+              </div>
+              <div class="filter-group">
+                <label>评论数</label>
+                <div class="d-flex gap-2">
+                  <input v-model="filters.minReviews" type="number" class="form-control" placeholder="最低">
+                  <input v-model="filters.maxReviews" type="number" class="form-control" placeholder="最高">
+                </div>
+              </div>
+              <div class="filter-group">
+                <label>增长率</label>
+                <select v-model="filters.minGrowth" class="form-select">
+                  <option value="">不限</option>
+                  <option value="0">正增长</option>
+                  <option value="10">10%以上</option>
+                  <option value="30">30%以上</option>
+                  <option value="50">50%以上</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>上架时间</label>
+                <div class="d-flex gap-2">
+                  <input v-model="filters.launchDateStart" type="date" class="form-control">
+                  <input v-model="filters.launchDateEnd" type="date" class="form-control">
+                </div>
+              </div>
+              <div class="filter-group d-flex gap-2">
+                <button @click="searchProducts" class="btn btn-primary">
+                  <i class="fas fa-search me-1"></i> 搜索
+                </button>
+                <button @click="resetFilters" class="btn btn-outline-secondary">
+                  <i class="fas fa-redo"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span>搜索结果 ({{ filteredProducts.length }} 条)</span>
+              <div class="d-flex gap-2">
+                <select v-model="sortBy" class="form-select form-select-sm" style="width: auto;">
+                  <option value="sales">按销量排序</option>
+                  <option value="price">按价格排序</option>
+                  <option value="rating">按评分排序</option>
+                  <option value="reviews">按评论数排序</option>
+                  <option value="growth">按增长率排序</option>
+                  <option value="bsr">按BSR排序</option>
+                </select>
+                <button @click="exportData('products')" class="btn btn-sm btn-outline-primary">
+                  <i class="fas fa-download me-1"></i> 导出
+                </button>
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th style="width: 70px;">图片</th>
+                      <th>产品信息</th>
+                      <th style="width: 100px;">类目</th>
+                      <th style="width: 80px;">价格</th>
+                      <th style="width: 90px;">月销量</th>
+                      <th style="width: 70px;">评分</th>
+                      <th style="width: 80px;">评论数</th>
+                      <th style="width: 60px;">BSR</th>
+                      <th style="width: 70px;">增长</th>
+                      <th style="width: 150px;">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="product in paginatedProducts" :key="product.asin">
+                      <td><img :src="product.image" class="product-img"></td>
+                      <td>
+                        <div class="fw-semibold" style="font-size: 0.9rem;">{{ truncate(product.title, 50) }}</div>
+                        <div class="text-muted" style="font-size: 0.75rem;">ASIN: {{ product.asin }}</div>
+                      </td>
+                      <td>{{ product.category }}</td>
+                      <td class="fw-semibold text-primary">${{ product.price }}</td>
+                      <td>{{ formatNumber(product.sales) }}</td>
+                      <td><span :class="getRatingBadgeClass(product.rating)">{{ product.rating }}</span></td>
+                      <td>{{ formatNumber(product.reviews) }}</td>
+                      <td>#{{ product.bsr }}</td>
+                      <td>
+                        <span :class="product.growthRate >= 0 ? 'text-success' : 'text-danger'">
+                          {{ product.growthRate >= 0 ? '+' : '' }}{{ product.growthRate }}%
+                        </span>
+                      </td>
+                      <td>
+                        <button @click="showProductDetail(product)" class="btn btn-sm btn-outline-info" title="查看详情">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                        <button @click="addToProductLibrary(product)" class="btn btn-sm btn-outline-warning" title="加入产品库">
+                          <i class="fas fa-bookmark"></i>
+                        </button>
+                        <button @click="addToCompetitor(product)" class="btn btn-sm btn-outline-success" title="加入竞品">
+                          <i class="fas fa-user-check"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="card-footer d-flex justify-content-between align-items-center">
+                <div class="text-muted">
+                  显示第 {{ (currentPage - 1) * pageSize + 1 }} - {{ Math.min(currentPage * pageSize, filteredProducts.length) }} 条，共 {{ filteredProducts.length }} 条
+                </div>
+                <nav>
+                  <ul class="pagination mb-0">
+                    <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                      <a class="page-link" href="#" @click.prevent="currentPage = 1">首页</a>
+                    </li>
+                    <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                      <a class="page-link" href="#" @click.prevent="currentPage--">上一页</a>
+                    </li>
+                    <li class="page-item" v-for="page in visiblePages" :key="page" :class="{ active: page === currentPage }">
+                      <a class="page-link" href="#" @click.prevent="currentPage = page">{{ page }}</a>
+                    </li>
+                    <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                      <a class="page-link" href="#" @click.prevent="currentPage++">下一页</a>
+                    </li>
+                    <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                      <a class="page-link" href="#" @click.prevent="currentPage = totalPages">尾页</a>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="currentTab === 'market'">
+          <div class="filter-section">
+            <div class="filter-row">
+              <div class="filter-group">
+                <label>选择类目</label>
+                <select v-model="marketFilters.category" class="form-select">
+                  <option value="">选择类目节点</option>
+                  <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>站点</label>
+                <select v-model="marketFilters.site" class="form-select">
+                  <option value="US">美国站</option>
+                  <option value="EU">欧洲站</option>
+                  <option value="JP">日本站</option>
+                </select>
+              </div>
+              <button @click="analyzeMarket" class="btn btn-primary">
+                <i class="fas fa-chart-bar me-1"></i> 分析市场
+              </button>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-lg-4 mb-4">
+              <div class="card text-center">
+                <div class="card-body">
+                  <div class="market-score">{{ marketScore }}</div>
+                  <div class="market-score-label">{{ marketScoreLabel }}</div>
+                  <div class="mt-4">
+                    <div class="text-muted mb-2">市场建议</div>
+                    <span :class="getMarketAdviceBadge(marketAdvice)">{{ marketAdvice }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-8 mb-4">
+              <div class="card">
+                <div class="card-header">核心指标</div>
+                <div class="card-body">
+                  <div class="market-metrics">
+                    <div class="metric-item">
+                      <div class="metric-value">{{ formatNumber(marketData.marketCap) }}</div>
+                      <div class="metric-label">月市场容量</div>
+                    </div>
+                    <div class="metric-item">
+                      <div class="metric-value">${{ marketData.avgPrice }}</div>
+                      <div class="metric-label">平均价格</div>
+                    </div>
+                    <div class="metric-item">
+                      <div class="metric-value">{{ marketData.avgRating }}</div>
+                      <div class="metric-label">平均评分</div>
+                    </div>
+                    <div class="metric-item">
+                      <div class="metric-value">{{ marketData.competitionLevel }}</div>
+                      <div class="metric-label">竞争程度</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="card mt-3">
+                <div class="card-header">详细分析</div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="text-muted small">品牌集中度</label>
+                        <div class="d-flex align-items-center gap-2">
+                          <div class="competition-bar flex-grow-1">
+                            <div class="competition-fill bg-danger" :style="{width: marketData.brandConcentration + '%'}"></div>
+                          </div>
+                          <span class="fw-semibold">{{ marketData.brandConcentration }}%</span>
+                        </div>
+                      </div>
+                      <div class="mb-3">
+                        <label class="text-muted small">卖家集中度</label>
+                        <div class="d-flex align-items-center gap-2">
+                          <div class="competition-bar flex-grow-1">
+                            <div class="competition-fill bg-warning" :style="{width: marketData.sellerConcentration + '%'}"></div>
+                          </div>
+                          <span class="fw-semibold">{{ marketData.sellerConcentration }}%</span>
+                        </div>
+                      </div>
+                      <div class="mb-3">
+                        <label class="text-muted small">Top10销量占比</label>
+                        <div class="d-flex align-items-center gap-2">
+                          <div class="competition-bar flex-grow-1">
+                            <div class="competition-fill bg-info" :style="{width: marketData.top10Share + '%'}"></div>
+                          </div>
+                          <span class="fw-semibold">{{ marketData.top10Share }}%</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label class="text-muted small">平均评论数</label>
+                        <div class="fw-semibold">{{ formatNumber(marketData.avgReviews) }}</div>
+                      </div>
+                      <div class="mb-3">
+                        <label class="text-muted small">退货率</label>
+                        <div class="fw-semibold">{{ marketData.returnRate }}%</div>
+                      </div>
+                      <div class="mb-3">
+                        <label class="text-muted small">平均重量</label>
+                        <div class="fw-semibold">{{ marketData.avgWeight }}kg</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="currentTab === 'keyword'">
+          <div class="filter-section">
+            <div class="filter-row">
+              <div class="filter-group" style="flex: 2;">
+                <label>输入关键词挖掘或ASIN反查</label>
+                <input v-model="keywordInput" type="text" class="form-control" placeholder="输入关键词或ASIN">
+              </div>
+              <div class="filter-group">
+                <label>站点</label>
+                <select v-model="keywordSite" class="form-select">
+                  <option value="US">美国站</option>
+                  <option value="EU">欧洲站</option>
+                  <option value="JP">日本站</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>模式</label>
+                <select v-model="keywordMode" class="form-select">
+                  <option value="expand">关键词挖掘</option>
+                  <option value="reverse">ASIN反查</option>
+                </select>
+              </div>
+              <button @click="keywordMode === 'expand' ? searchKeywords() : reverseKeyword()" class="btn btn-primary">
+                <i class="fas fa-search me-1"></i> {{ keywordMode === 'expand' ? '挖掘' : '反查' }}
+              </button>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-lg-8">
+              <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span>{{ keywordMode === 'expand' ? '关键词挖掘结果' : '关键词反查结果' }} ({{ keywordResults.length }})</span>
+                  <button v-if="keywordMode === 'expand'" @click="exportWordBank" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-download me-1"></i> 导出
+                  </button>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table table-hover">
+                      <thead>
+                        <tr>
+                          <th>关键词</th>
+                          <th style="width: 100px;">搜索量</th>
+                          <th style="width: 150px;">竞争度</th>
+                          <th style="width: 80px;">转化率</th>
+                          <th style="width: 80px;">趋势</th>
+                          <th v-if="keywordMode === 'reverse'" style="width: 80px;">排名</th>
+                          <th style="width: 120px;">操作</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-if="keywordResults.length === 0">
+                          <td colspan="6" class="text-center text-muted py-4">输入关键词开始挖掘</td>
+                        </tr>
+                        <tr v-for="kw in keywordResults" :key="kw.keyword">
+                          <td class="fw-semibold">{{ kw.keyword }}</td>
+                          <td>{{ formatNumber(kw.searchVolume) }}</td>
+                          <td>
+                            <div class="d-flex align-items-center gap-2">
+                              <div class="competition-bar flex-grow-1">
+                                <div class="competition-fill" :class="getCompetitionClass(kw.competition)" :style="{width: kw.competition + '%'}"></div>
+                              </div>
+                              <span class="small">{{ kw.competition }}%</span>
+                            </div>
+                          </td>
+                          <td>{{ kw.conversionRate }}%</td>
+                          <td>
+                            <span :class="getTrendClass(kw.trend)">
+                              <i :class="getTrendIcon(kw.trend)"></i>
+                              {{ Math.abs(kw.trend) }}%
+                            </span>
+                          </td>
+                          <td v-if="keywordMode === 'reverse'">
+                            <span class="badge bg-info">{{ kw.rank || '-' }}</span>
+                          </td>
+                          <td>
+                            <div class="btn-group btn-group-sm">
+                              <button @click="addToWordBank(kw, 'traffic')" class="btn btn-success" title="加入引流词">
+                                <i class="fas fa-plus"></i>
+                              </button>
+                              <button @click="addToWordBank(kw, 'conversion')" class="btn btn-primary" title="加入转化词">
+                                <i class="fas fa-arrow-right"></i>
+                              </button>
+                              <button @click="addToWordBank(kw, 'longtail')" class="btn btn-info" title="加入长尾词">
+                                <i class="fas fa-list"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card mb-4">
+                <div class="card-header">
+                  <i class="fas fa-exchange-alt me-2"></i>流量词对比
+                </div>
+                <div class="card-body">
+                  <div class="mb-3">
+                    <label class="form-label">选择ASIN进行对比 (最多5个)</label>
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                      <span v-for="asin in compareAsins" :key="asin" class="badge bg-primary d-flex align-items-center gap-1">
+                        {{ asin }}
+                        <button @click="compareAsins = compareAsins.filter(a => a !== asin)" class="btn-close btn-close-white ms-2"></button>
+                      </span>
+                    </div>
+                    <div class="d-flex gap-2">
+                      <input v-model="newCompareAsin" type="text" class="form-control" placeholder="输入ASIN添加">
+                      <button @click="if (newCompareAsin && compareAsins.length < 5) { compareAsins.push(newCompareAsin.toUpperCase()); newCompareAsin = '' }" class="btn btn-outline-primary">
+                        <i class="fas fa-plus"></i>
+                      </button>
+                      <button @click="compareKeywords" class="btn btn-primary" :disabled="compareAsins.length < 2">
+                        <i class="fas fa-chart-bar me-1"></i> 对比
+                      </button>
+                    </div>
+                  </div>
+                  <div v-if="compareResults.length > 0" class="table-responsive">
+                    <table class="table table-sm">
+                      <thead>
+                        <tr>
+                          <th>关键词</th>
+                          <th>搜索量</th>
+                          <th v-for="asin in compareAsins" :key="asin">{{ asin }}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="result in compareResults" :key="result.keyword">
+                          <td>{{ result.keyword }}</td>
+                          <td>{{ formatNumber(result.searchVolume) }}</td>
+                          <td v-for="asin in compareAsins" :key="asin">
+                            <span :class="result[asin] <= 3 ? 'text-success' : result[asin] <= 10 ? 'text-warning' : 'text-danger'">
+                              #{{ result[asin] }}
+                            </span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4">
+              <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span>我的词库</span>
+                  <div class="btn-group btn-group-sm">
+                    <label class="btn btn-outline-primary" style="cursor: pointer;">
+                      <i class="fas fa-upload me-1"></i> 导入
+                      <input type="file" accept=".txt,.csv" @change="importKeywords($event.target.files[0])" style="display: none;">
+                    </label>
+                    <button @click="exportWordBank" class="btn btn-outline-primary" :disabled="wordBank.length === 0">
+                      <i class="fas fa-download"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div v-if="wordBank.length === 0" class="text-center text-muted py-4">
+                    <i class="fas fa-keyboard fa-2x mb-2"></i>
+                    <p>暂无收藏的关键词</p>
+                    <small>从左侧搜索结果中添加</small>
+                  </div>
+                  <div v-else>
+                    <div class="mb-3">
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted small">共 {{ wordBank.length }} 个关键词</span>
+                        <button @click="wordBank = []; saveToLocalStorage()" class="btn btn-sm btn-link text-danger">
+                          清空
+                        </button>
+                      </div>
+                      <select v-model="selectedWordBank" class="form-select form-select-sm">
+                        <option value="all">全部 ({{ wordBank.length }})</option>
+                        <option value="traffic">引流词 ({{ wordBank.filter(w => w.category === 'traffic').length }})</option>
+                        <option value="conversion">转化词 ({{ wordBank.filter(w => w.category === 'conversion').length }})</option>
+                        <option value="longtail">长尾词 ({{ wordBank.filter(w => w.category === 'longtail').length }})</option>
+                        <option value="brand">品牌词 ({{ wordBank.filter(w => w.category === 'brand').length }})</option>
+                      </select>
+                    </div>
+                    <div class="mb-2">
+                      <span v-for="cat in wordBankCategories" :key="cat.id" class="badge me-1" :class="'bg-' + cat.color">
+                        {{ cat.name }}: {{ wordBank.filter(w => w.category === cat.id).length }}
+                      </span>
+                    </div>
+                    <div class="keyword-list" style="max-height: 400px; overflow-y: auto;">
+                      <div v-for="(kw, index) in filteredWordBank" :key="index" class="keyword-item d-flex justify-content-between align-items-center p-2 border-bottom">
+                        <div>
+                          <span class="fw-semibold">{{ kw.keyword }}</span>
+                          <div class="small text-muted">
+                            搜索量: {{ formatNumber(kw.searchVolume) }} | 竞争: {{ kw.competition }}%
+                          </div>
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                          <select :value="kw.category" @change="updateWordBankCategory(kw.keyword, $event.target.value)" class="form-select form-select-sm" style="width: auto;">
+                            <option v-for="cat in wordBankCategories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+                          </select>
+                          <button @click="removeFromWordBank(index)" class="btn btn-outline-danger">
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="currentTab === 'competitor'">
+          <div class="row">
+            <div class="col-lg-4">
+              <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span>竞品监控列表</span>
+                  <button @click="addCompetitorModal = true" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus"></i>
+                  </button>
+                </div>
+                <div class="card-body p-0">
+                  <div v-if="competitorList.length === 0" class="empty-state">
+                    <i class="fas fa-users"></i>
+                    <p>暂无监控的竞品</p>
+                  </div>
+                  <div v-else>
+                    <div v-for="comp in competitorList" :key="comp.asin" 
+                         class="competitor-card" 
+                         :class="{ active: selectedCompetitor?.asin === comp.asin }"
+                         @click="selectCompetitor(comp)">
+                      <div class="d-flex gap-2">
+                        <img :src="comp.image" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover;">
+                        <div class="flex-grow-1">
+                          <div class="fw-semibold" style="font-size: 0.9rem;">{{ truncate(comp.title, 30) }}</div>
+                          <div class="text-muted small">
+                            ${{ comp.price }} | {{ comp.rating }}★ | #{{ comp.bsr }}
+                          </div>
+                        </div>
+                        <button @click.stop="removeCompetitor(comp.asin)" class="btn btn-sm text-danger">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-8">
+              <div v-if="selectedCompetitor" class="card">
+                <div class="card-header">
+                  <span>{{ selectedCompetitor.title }}</span>
+                  <span class="badge bg-secondary">{{ selectedCompetitor.asin }}</span>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-3 text-center mb-3">
+                      <img :src="selectedCompetitor.image" style="width: 120px; height: 120px; border-radius: 12px; object-fit: cover;">
+                    </div>
+                    <div class="col-md-9">
+                      <div class="row">
+                        <div class="col-6 mb-2">
+                          <label class="text-muted small">价格</label>
+                          <div class="fw-semibold text-primary h5">${{ selectedCompetitor.price }}</div>
+                        </div>
+                        <div class="col-6 mb-2">
+                          <label class="text-muted small">评分</label>
+                          <div class="fw-semibold h5">
+                            <span class="star-rating">{{ selectedCompetitor.rating }}</span> ★
+                          </div>
+                        </div>
+                        <div class="col-6 mb-2">
+                          <label class="text-muted small">月销量</label>
+                          <div class="fw-semibold">{{ formatNumber(selectedCompetitor.sales) }}</div>
+                        </div>
+                        <div class="col-6 mb-2">
+                          <label class="text-muted small">评论数</label>
+                          <div class="fw-semibold">{{ formatNumber(selectedCompetitor.reviews) }}</div>
+                        </div>
+                        <div class="col-6 mb-2">
+                          <label class="text-muted small">BSR排名</label>
+                          <div class="fw-semibold">#{{ selectedCompetitor.bsr }}</div>
+                        </div>
+                        <div class="col-6 mb-2">
+                          <label class="text-muted small">变体数</label>
+                          <div class="fw-semibold">{{ selectedCompetitor.variants }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="detail-section">
+                    <h6><i class="fas fa-key me-2"></i>流量词 TOP20</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                      <span v-for="word in selectedCompetitor.topKeywords" :key="word" class="keyword-tag">
+                        {{ word }}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="detail-section">
+                        <h6><i class="fas fa-chart-line me-2"></i>销量趋势</h6>
+                        <div class="chart-container" style="height: 200px;">
+                          <canvas id="salesTrendChart"></canvas>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="detail-section">
+                        <h6><i class="fas fa-dollar-sign me-2"></i>价格趋势</h6>
+                        <div class="chart-container" style="height: 200px;">
+                          <canvas id="priceTrendChart"></canvas>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="detail-section">
+                    <h6><i class="fas fa-info-circle me-2"></i>竞品分析报告</h6>
+                    <div class="row">
+                      <div class="col-4">
+                        <div class="stat-card p-2">
+                          <div class="text-muted small">预计月收入</div>
+                          <div class="h4 text-success fw-bold">${{ formatNumber(selectedCompetitor.sales * selectedCompetitor.price) }}</div>
+                        </div>
+                      </div>
+                      <div class="col-4">
+                        <div class="stat-card p-2">
+                          <div class="text-muted small">评论增长率</div>
+                          <div class="h4" :class="selectedCompetitor.reviews > 5000 ? 'text-success' : 'text-warning'">
+                            {{ selectedCompetitor.reviews > 5000 ? '高' : '中' }}
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-4">
+                        <div class="stat-card p-2">
+                          <div class="text-muted small">BSR趋势</div>
+                          <div class="h4" :class="selectedCompetitor.bsr < 200 ? 'text-success' : selectedCompetitor.bsr < 500 ? 'text-warning' : 'text-danger'">
+                            {{ selectedCompetitor.bsr < 200 ? '优秀' : selectedCompetitor.bsr < 500 ? '良好' : '一般' }}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="card">
+                <div class="empty-state">
+                  <i class="fas fa-mouse-pointer"></i>
+                  <p>从左侧选择一个竞品查看详情</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="currentTab === 'review'">
+          <div class="filter-section">
+            <div class="filter-row">
+              <div class="filter-group" style="flex: 2;">
+                <label>输入ASIN分析评论</label>
+                <input v-model="reviewAsin" type="text" class="form-control" placeholder="输入ASIN进行评论分析">
+              </div>
+              <div class="filter-group">
+                <label>分析数量</label>
+                <select v-model="reviewCount" class="form-select">
+                  <option value="50">50条</option>
+                  <option value="100">100条</option>
+                  <option value="200">200条</option>
+                </select>
+              </div>
+              <button @click="analyzeReviews" class="btn btn-primary">
+                <i class="fas fa-comment-dots me-1"></i> 开始分析
+              </button>
+            </div>
+          </div>
+
+          <div v-if="reviewAnalysis" class="row">
+            <div class="col-lg-5 mb-4">
+              <div class="card">
+                <div class="card-header">评论概览</div>
+                <div class="card-body">
+                  <div class="review-summary">
+                    <div class="review-chart">
+                      <canvas id="reviewRatingChart"></canvas>
+                    </div>
+                    <div class="review-bars">
+                      <div v-for="(item, index) in reviewDistribution" :key="index" class="review-bar-row">
+                        <div class="review-bar-label">{{ index }}星</div>
+                        <div class="review-bar">
+                          <div class="review-bar-fill" :style="{width: item.percent + '%', background: getStarColor(index)}"></div>
+                        </div>
+                        <div class="review-bar-count">{{ item.count }}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row mt-4 text-center">
+                    <div class="col-4">
+                      <div class="h4 mb-0 text-success">{{ reviewAnalysis.positive }}%</div>
+                      <div class="small text-muted">正面评价</div>
+                    </div>
+                    <div class="col-4">
+                      <div class="h4 mb-0 text-warning">{{ reviewAnalysis.neutral }}%</div>
+                      <div class="small text-muted">中性评价</div>
+                    </div>
+                    <div class="col-4">
+                      <div class="h4 mb-0 text-danger">{{ reviewAnalysis.negative }}%</div>
+                      <div class="small text-muted">负面评价</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-7 mb-4">
+              <div class="card">
+                <div class="card-header">关键词提取</div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <h6 class="text-success mb-3"><i class="fas fa-thumbs-up me-1"></i> 优点</h6>
+                      <div class="keyword-tag mb-2" v-for="kw in reviewAnalysis.positiveKeywords" :key="kw.word">
+                        {{ kw.word }} ({{ kw.count }})
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <h6 class="text-danger mb-3"><i class="fas fa-thumbs-down me-1"></i> 缺点</h6>
+                      <div class="keyword-tag mb-2" v-for="kw in reviewAnalysis.negativeKeywords" :key="kw.word">
+                        {{ kw.word }} ({{ kw.count }})
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="card mt-3">
+                <div class="card-header">评论趋势</div>
+                <div class="card-body">
+                  <div class="chart-container" style="height: 200px;">
+                    <canvas id="reviewTrendChart"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="reviewAnalysis" class="row">
+            <div class="col-lg-6 mb-4">
+              <div class="card">
+                <div class="card-header">变体分析</div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-sm">
+                      <thead>
+                        <tr>
+                          <th>变体名称</th>
+                          <th>评论数</th>
+                          <th>平均评分</th>
+                          <th>差评率</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="variant in reviewVariants" :key="variant.name">
+                          <td>{{ variant.name }}</td>
+                          <td>{{ formatNumber(variant.reviews) }}</td>
+                          <td>
+                            <span :class="getRatingClass(variant.avgRating)">
+                              {{ variant.avgRating }} ★
+                            </span>
+                          </td>
+                          <td>
+                            <span :class="(100 - variant.avgRating * 20) > 15 ? 'text-danger' : 'text-success'">
+                              {{ (100 - variant.avgRating * 20).toFixed(1) }}%
+                            </span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+              <div class="card">
+                <div class="card-header">痛点分析</div>
+                <div class="card-body">
+                  <div class="mb-4">
+                    <h6 class="text-danger mb-2"><i class="fas fa-exclamation-circle me-1"></i> 常见问题</h6>
+                    <div v-for="(issue, index) in reviewAnalysis.painPoints" :key="index" class="alert alert-danger alert-sm mb-2">
+                      <strong>{{ issue.title }}:</strong> {{ issue.description }}
+                      <div class="small mt-1">影响 {{ issue.impact }}% 的用户</div>
+                    </div>
+                  </div>
+                  <div>
+                    <h6 class="text-success mb-2"><i class="fas fa-lightbulb me-1"></i> 改进建议</h6>
+                    <div v-for="(suggestion, index) in reviewAnalysis.suggestions" :key="index" class="alert alert-success alert-sm mb-2">
+                      {{ suggestion }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="reviewAnalysis" class="row">
+            <div class="col-lg-12 mb-4">
+              <div class="card">
+                <div class="card-header">评论列表</div>
+                <div class="card-body">
+                  <div class="review-list">
+                    <div v-for="(review, index) in reviewList" :key="index" class="review-item">
+                      <div class="d-flex gap-3">
+                        <div class="text-center">
+                          <div class="star-rating-lg">{{ review.rating }}</div>
+                          <div class="small text-muted">{{ review.date }}</div>
+                        </div>
+                        <div class="flex-grow-1">
+                          <p class="mb-1">{{ review.content }}</p>
+                          <div class="small text-muted">
+                            <span v-if="review.variant" class="me-2">变体: {{ review.variant }}</span>
+                            <span v-if="review.verified" class="me-2"><i class="fas fa-check-circle text-success"></i> 已验证购买</span>
+                            <span>有 {{ review.helpful }} 人觉得有帮助</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="card">
+            <div class="empty-state">
+              <i class="fas fa-comment-dots"></i>
+              <p>输入ASIN开始评论分析</p>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="currentTab === 'store'">
+          <div class="filter-section">
+            <div class="filter-row">
+              <div class="filter-group" style="flex: 2;">
+                <label>添加监控店铺</label>
+                <input v-model="storeUrl" type="text" class="form-control" placeholder="输入店铺名称或URL">
+              </div>
+              <button @click="addStore" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> 添加店铺
+              </button>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-lg-4 mb-4">
+              <div class="card">
+                <div class="card-header">监控店铺列表</div>
+                <div class="card-body p-0">
+                  <div v-if="monitoredStores.length === 0" class="empty-state">
+                    <i class="fas fa-store"></i>
+                    <p>暂无监控的店铺</p>
+                  </div>
+                  <div v-else>
+                    <div v-for="store in monitoredStores" :key="store.name" 
+                         class="store-card" 
+                         :class="{ active: selectedStore?.name === store.name }"
+                         @click="selectStore(store)">
+                      <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                        <div>
+                          <div class="fw-semibold">{{ store.name }}</div>
+                          <div class="small text-muted">{{ store.productCount }} 产品 | {{ store.avgRating }}★</div>
+                        </div>
+                        <button @click.stop="removeStore(store.name)" class="btn btn-sm text-danger">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-8">
+              <div v-if="selectedStore" class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span class="fw-semibold">{{ selectedStore.name }}</span>
+                  <button @click="selectedStore = null" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-times"></i> 返回列表
+                  </button>
+                </div>
+                <div class="card-body">
+                  <div class="row mb-4">
+                    <div class="col-3 text-center">
+                      <div class="stat-card p-3">
+                        <div class="h3 text-primary">{{ selectedStore.productCount }}</div>
+                        <div class="small text-muted">产品数量</div>
+                      </div>
+                    </div>
+                    <div class="col-3 text-center">
+                      <div class="stat-card p-3">
+                        <div class="h3 text-success">{{ selectedStore.newProducts }}</div>
+                        <div class="small text-muted">本周新品</div>
+                      </div>
+                    </div>
+                    <div class="col-3 text-center">
+                      <div class="stat-card p-3">
+                        <div class="h3" :class="getRatingClass(selectedStore.avgRating)">{{ selectedStore.avgRating }}★</div>
+                        <div class="small text-muted">平均评分</div>
+                      </div>
+                    </div>
+                    <div class="col-3 text-center">
+                      <div class="stat-card p-3">
+                        <div class="h3 text-info">{{ selectedStore.avgPrice }}</div>
+                        <div class="small text-muted">平均价格</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mb-4">
+                    <h6 class="fw-semibold mb-2">主攻类目</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                      <span v-for="cat in selectedStore.mainCategories" :key="cat" class="badge bg-primary">{{ cat }}</span>
+                    </div>
+                  </div>
+
+                  <div class="row mb-4">
+                    <div class="col-md-6">
+                      <h6 class="fw-semibold mb-2">店铺评分分布</h6>
+                      <div class="d-flex flex-column gap-1">
+                        <div v-for="i in 5" :key="i" class="d-flex align-items-center gap-2">
+                          <span class="w-8">{{ i }}★</span>
+                          <div class="flex-grow-1 bg-gray-200 rounded-full h-2">
+                            <div class="h-2 rounded-full" :class="i >= 4 ? 'bg-success' : i === 3 ? 'bg-warning' : 'bg-danger'" :style="{width: (60 + Math.random() * 30) + '%'}"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <h6 class="fw-semibold mb-2">价格区间分布</h6>
+                      <div class="d-flex flex-column gap-1">
+                        <div class="d-flex justify-content-between">
+                          <span class="small">&lt; $20</span>
+                          <span class="small">{{ Math.round(10 + Math.random() * 20) }}%</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                          <span class="small">$20 - $50</span>
+                          <span class="small">{{ Math.round(30 + Math.random() * 20) }}%</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                          <span class="small">$50 - $100</span>
+                          <span class="small">{{ Math.round(20 + Math.random() * 15) }}%</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                          <span class="small">&gt; $100</span>
+                          <span class="small">{{ Math.round(10 + Math.random() * 15) }}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mb-4">
+                    <h6 class="fw-semibold mb-2">新品动态</h6>
+                    <div class="table-responsive">
+                      <table class="table table-sm">
+                        <thead>
+                          <tr>
+                            <th>产品名称</th>
+                            <th>价格</th>
+                            <th>上架时间</th>
+                            <th>销量</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="(product, index) in selectedStore.newestProducts" :key="index">
+                            <td>{{ product.title }}</td>
+                            <td>${{ product.price }}</td>
+                            <td>{{ product.launchDate }}</td>
+                            <td>{{ formatNumber(product.sales) }}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-else>
+                <div class="card">
+                  <div class="card-body">
+                    <div class="row">
+                      <div v-for="store in monitoredStores" :key="store.name" class="col-lg-4 mb-4">
+                        <div class="card h-100">
+                          <div class="card-header d-flex justify-content-between align-items-center">
+                            <span class="fw-semibold">{{ store.name }}</span>
+                            <span class="badge bg-primary">{{ store.productCount }} 产品</span>
+                          </div>
+                          <div class="card-body">
+                            <div class="row text-center mb-3">
+                              <div class="col-4">
+                                <div class="h5 mb-0">{{ store.newProducts }}</div>
+                                <div class="small text-muted">本周新品</div>
+                              </div>
+                              <div class="col-4">
+                                <div class="h5 mb-0">{{ store.avgRating }}</div>
+                                <div class="small text-muted">平均评分</div>
+                              </div>
+                              <div class="col-4">
+                                <div class="h5 mb-0">{{ store.avgPrice }}</div>
+                                <div class="small text-muted">平均价格</div>
+                              </div>
+                            </div>
+                            <div class="small text-muted mb-2">主攻类目</div>
+                            <div class="mb-3">
+                              <span v-for="cat in store.mainCategories" :key="cat" class="badge bg-light text-dark me-1">
+                                {{ cat }}
+                              </span>
+                            </div>
+                            <button @click="selectStore(store)" class="btn btn-outline-primary btn-sm w-100">
+                              <i class="fas fa-eye me-1"></i> 查看详情
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div v-if="monitoredStores.length === 0" class="empty-state">
+                      <i class="fas fa-store"></i>
+                      <p>添加店铺开始监控</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="currentTab === 'profit'">
+          <div class="row">
+            <div class="col-lg-5 mb-4">
+              <div class="card">
+                <div class="card-header">成本参数</div>
+                <div class="card-body">
+                  <div class="mb-3">
+                    <label class="form-label">产品成本 ($)</label>
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input v-model.number="profit.cost" type="number" class="form-control" step="0.01">
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">售价 ($)</label>
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input v-model.number="profit.price" type="number" class="form-control" step="0.01">
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">产品重量 (kg)</label>
+                    <input v-model.number="profit.weight" type="number" class="form-control" step="0.01">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">尺寸 (长×宽×高 cm)</label>
+                    <input v-model="profit.dimensions" type="text" class="form-control" placeholder="30×20×15">
+                  </div>
+                  <div class="row mb-3">
+                    <div class="col-6">
+                      <label class="form-label">平台佣金 (%)</label>
+                      <input v-model.number="profit.commission" type="number" class="form-control" value="15">
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label">头程运费 ($/kg)</label>
+                      <input v-model.number="profit.shippingPerKg" type="number" class="form-control" value="5">
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">月销量 (件)</label>
+                    <input v-model.number="profit.monthlySales" type="number" class="form-control">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">月广告费 ($)</label>
+                    <input v-model.number="profit.adCost" type="number" class="form-control" value="500">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">配送方式</label>
+                    <select v-model="profit.shippingType" class="form-select">
+                      <option value="fba">FBA</option>
+                      <option value="fbm">FBM</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-7 mb-4">
+              <div class="row mb-4">
+                <div class="col-6">
+                  <div class="profit-highlight">
+                    <div class="value">${{ profitResult.monthlyProfit }}</div>
+                    <div class="label">月净利润</div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="profit-highlight" style="background: linear-gradient(135deg, var(--primary), #ff8533);">
+                    <div class="value">{{ profitResult.netMargin }}%</div>
+                    <div class="label">净利率</div>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-header">费用明细</div>
+                <div class="card-body">
+                  <table class="table">
+                    <tbody>
+                      <tr>
+                        <td>月销售额</td>
+                        <td class="text-end fw-semibold text-primary">${{ profitResult.revenue }}</td>
+                      </tr>
+                      <tr>
+                        <td>产品成本</td>
+                        <td class="text-end">-${{ profitResult.totalCost }}</td>
+                      </tr>
+                      <tr>
+                        <td>FBA/FBM费用</td>
+                        <td class="text-end">-${{ profitResult.fulfillmentFee }}</td>
+                      </tr>
+                      <tr>
+                        <td>平台佣金 (15%)</td>
+                        <td class="text-end">-${{ profitResult.commission }}</td>
+                      </tr>
+                      <tr>
+                        <td>头程运费</td>
+                        <td class="text-end">-${{ profitResult.shippingCost }}</td>
+                      </tr>
+                      <tr>
+                        <td>广告费</td>
+                        <td class="text-end">-${{ profit.adCost }}</td>
+                      </tr>
+                      <tr class="border-top fw-semibold fs-5">
+                        <td>月净利润</td>
+                        <td class="text-end text-success">${{ profitResult.monthlyProfit }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <hr>
+                  <div class="row text-center">
+                    <div class="col-4">
+                      <div class="h5 text-primary">{{ profitResult.grossMargin }}%</div>
+                      <div class="small text-muted">毛利率</div>
+                    </div>
+                    <div class="col-4">
+                      <div class="h5 text-success">{{ profitResult.roi }}%</div>
+                      <div class="small text-muted">ROI</div>
+                    </div>
+                    <div class="col-4">
+                      <div class="h5 text-warning">{{ profitResult.breakeven }}</div>
+                      <div class="small text-muted">盈亏平衡点</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="currentTab === 'listing'">
+          <div class="row">
+            <div class="col-lg-6 mb-4">
+              <div class="card">
+                <div class="card-header">Listing文案</div>
+                <div class="card-body">
+                  <div class="mb-3">
+                    <label class="form-label">标题</label>
+                    <input v-model="listing.title" type="text" class="form-control" placeholder="输入产品标题">
+                    <div class="d-flex justify-content-between mt-1">
+                      <span class="small text-muted">{{ listing.title.length }}/200</span>
+                      <span :class="getScoreClass(getKeywordScore(listing.title))">
+                        关键词得分: {{ getKeywordScore(listing.title) }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">五行描述</label>
+                    <textarea v-model="listing.bullets" class="form-control" rows="5" placeholder="输入五行描述，每行一个要点"></textarea>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Search Terms</label>
+                    <textarea v-model="listing.searchTerms" class="form-control" rows="3" placeholder="输入Search Terms，用逗号分隔"></textarea>
+                    <div class="small text-muted mt-1">
+                      已填充: {{ getFilledPercent() }}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+              <div class="card">
+                <div class="card-header">优化建议</div>
+                <div class="card-body">
+                  <div class="mb-4">
+                    <label class="form-label fw-semibold">关键词覆盖率</label>
+                    <div class="progress mb-2" style="height: 25px;">
+                      <div class="progress-bar" :class="getCoverageClass(listingCoverage)" :style="{width: listingCoverage + '%'}">
+                        {{ listingCoverage }}%
+                      </div>
+                    </div>
+                    <div class="small text-muted">
+                      <span v-if="listingCoverage < 50">覆盖率较低，建议添加更多核心关键词</span>
+                      <span v-else-if="listingCoverage < 80">覆盖率中等，可继续优化</span>
+                      <span v-else>覆盖率良好！</span>
+                    </div>
+                  </div>
+                  <div class="mb-4">
+                    <label class="form-label fw-semibold">标题质量</label>
+                    <div class="d-flex gap-2 flex-wrap">
+                      <span v-for="tip in titleTips" :key="tip.label" 
+                            :class="['badge', tip.passed ? 'bg-success' : 'bg-danger']">
+                        <i :class="tip.passed ? 'fas fa-check' : 'fas fa-times'"></i>
+                        {{ tip.label }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="mb-4">
+                    <label class="form-label fw-semibold">埋词建议</label>
+                    <div class="keyword-tag mb-2" v-for="kw in suggestedKeywords" :key="kw.keyword">
+                      <i :class="kw.found ? 'fas fa-check text-success' : 'fas fa-times text-danger'"></i>
+                      {{ kw.keyword }}
+                    </div>
+                  </div>
+                  <button @click="optimizeListing" class="btn btn-primary w-100">
+                    <i class="fas fa-magic me-1"></i> AI智能优化
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="selectedProduct" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+          <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">产品详情</h5>
+                <button type="button" class="btn-close" @click="selectedProduct = null"></button>
+              </div>
+              <div class="modal-body">
+                <div class="row">
+                  <div class="col-md-4 text-center">
+                    <img :src="selectedProduct.image" class="img-fluid rounded mb-3" :alt="selectedProduct.title">
+                    <div class="d-grid gap-2">
+                      <button @click="addToProductLibrary(selectedProduct)" class="btn btn-warning">
+                        <i class="fas fa-bookmark me-1"></i> 加入产品库
+                      </button>
+                      <button @click="addToCompetitor(selectedProduct)" class="btn btn-success">
+                        <i class="fas fa-user-check me-1"></i> 加入竞品监控
+                      </button>
+                      <button @click="reverseAsin = selectedProduct.asin; switchTab('keyword')" class="btn btn-info">
+                        <i class="fas fa-keyboard me-1"></i> 关键词反查
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col-md-8">
+                    <h6 class="fw-bold">{{ selectedProduct.title }}</h6>
+                    <p class="text-muted mb-2">ASIN: {{ selectedProduct.asin }} | 品牌: {{ selectedProduct.brand }}</p>
+                    <div class="row mb-3">
+                      <div class="col-6">
+                        <div class="stat-card p-3">
+                          <div class="text-muted small">价格</div>
+                          <div class="h4 text-primary fw-bold">${{ selectedProduct.price }}</div>
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="stat-card p-3">
+                          <div class="text-muted small">评分</div>
+                          <div class="h4 text-warning fw-bold">{{ selectedProduct.rating }} <small>★</small></div>
+                          <div class="small text-muted">{{ formatNumber(selectedProduct.reviews) }} 条评论</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row mb-3">
+                      <div class="col-6">
+                        <div class="stat-card p-3">
+                          <div class="text-muted small">月销量</div>
+                          <div class="h4 text-success fw-bold">{{ formatNumber(selectedProduct.sales) }}</div>
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="stat-card p-3">
+                          <div class="text-muted small">BSR排名</div>
+                          <div class="h4 text-info fw-bold">#{{ selectedProduct.bsr }}</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row mb-3">
+                      <div class="col-6">
+                        <div class="stat-card p-3">
+                          <div class="text-muted small">增长率</div>
+                          <div class="h4" :class="selectedProduct.growthRate >= 0 ? 'text-success' : 'text-danger'">
+                            {{ selectedProduct.growthRate >= 0 ? '+' : '' }}{{ selectedProduct.growthRate }}%
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="stat-card p-3">
+                          <div class="text-muted small">上架时间</div>
+                          <div class="h6">{{ selectedProduct.launchDate }}</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <div class="text-muted small mb-2">变体信息</div>
+                      <div class="d-flex flex-wrap gap-2">
+                        <span v-for="v in selectedProduct.variations" :key="v" class="badge bg-secondary">{{ v }}</span>
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <div class="text-muted small mb-2">产品信息</div>
+                      <ul class="list-unstyled small">
+                        <li><strong>卖家:</strong> {{ selectedProduct.seller }}</li>
+                        <li><strong>类目:</strong> {{ selectedProduct.category }}</li>
+                        <li><strong>重量:</strong> {{ selectedProduct.weight }} lb</li>
+                        <li><strong>尺寸:</strong> {{ selectedProduct.dimensions }}</li>
+                        <li><strong>FBA费用:</strong> ${{ selectedProduct.fbaFee }}</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <hr>
+                <div class="row">
+                  <div class="col-md-6">
+                    <h6 class="fw-bold mb-3">销量趋势</h6>
+                    <div class="chart-container" style="height: 200px;">
+                      <canvas id="productSalesChart"></canvas>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <h6 class="fw-bold mb-3">价格趋势</h6>
+                    <div class="chart-container" style="height: 200px;">
+                      <canvas id="productPriceChart"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
